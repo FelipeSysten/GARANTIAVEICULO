@@ -1,73 +1,71 @@
-import { Moon, Sun, Wallet } from 'lucide-react';
+import React from 'react';
+import { Sun, Moon, Wallet, RefreshCw } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
-import { useContract } from '../contexts/ContractContext';
-import { formatarEndereco } from '../utils/formatters';
+import { useWeb3 } from '../contexts/Web3Context';
+import Button from './ui/Button';
 
-export function Header() {
-  const { isDarkMode, toggleTheme } = useTheme();
-  const { 
-    estaConectado, 
-    conectarCarteira, 
-    desconectarCarteira, 
-    endereco,
-    loading
-  } = useContract();
+const Header: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
+  const { account, conectarCarteira, trocarConta, isConnected } = useWeb3();
+
+  // Formata o endereço da carteira para exibição (primeiros 6 e últimos 4 caracteres)
+  const formatAddress = (address: string) => {
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+  };
 
   return (
-    <header className="w-full px-4 py-3 flex items-center justify-between shadow-sm bg-white dark:bg-gray-800 transition-colors duration-300">
-      <div className="flex items-center space-x-2">
-        <Wallet className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-        <h1 className="text-xl font-semibold text-gray-800 dark:text-white">
-          Garantia Veículo
-        </h1>
-      </div>
-
-      <div className="flex items-center space-x-4">
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-          aria-label={isDarkMode ? 'Ativar modo claro' : 'Ativar modo escuro'}
-        >
-          {isDarkMode ? (
-            <Sun className="h-5 w-5 text-yellow-400" />
+    <header className="bg-white dark:bg-gray-800 shadow-md py-4 px-6 transition-colors duration-300">
+      <div className="container mx-auto flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <Wallet className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+          <h1 className="text-xl font-bold text-gray-800 dark:text-white">
+            Garantia de Veículos
+          </h1>
+        </div>
+        
+        <div className="flex items-center space-x-4">
+          {isConnected ? (
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                {formatAddress(account as string)}
+              </span>
+              <Button 
+                onClick={trocarConta}
+                variant="outline"
+                size="sm"
+                className="flex items-center"
+              >
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Trocar Conta
+              </Button>
+            </div>
           ) : (
-            <Moon className="h-5 w-5 text-gray-600" />
-          )}
-        </button>
-
-        {estaConectado ? (
-          <div className="flex items-center">
-            <span className="mr-2 text-sm text-gray-600 dark:text-gray-300 hidden sm:inline">
-              {formatarEndereco(endereco)}
-            </span>
-            <button
-              onClick={desconectarCarteira}
-              className="py-2 px-4 text-sm bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors"
+            <Button 
+              onClick={conectarCarteira}
+              variant="primary"
+              size="default"
+              className="flex items-center"
             >
-              Desconectar
-            </button>
-          </div>
-        ) : (
+              <Wallet className="w-4 h-4 mr-1" />
+              Conectar Carteira
+            </Button>
+          )}
+          
           <button
-            onClick={conectarCarteira}
-            disabled={loading}
-            className={`
-              py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg 
-              transition-colors flex items-center
-              ${loading ? 'opacity-70 cursor-not-allowed' : ''}
-            `}
+            onClick={toggleTheme}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Alternar tema"
           >
-            {loading ? (
-              <>
-                <span className="animate-spin mr-2">⟳</span>
-                Conectando...
-              </>
+            {theme === 'dark' ? (
+              <Sun className="w-5 h-5 text-yellow-400" />
             ) : (
-              <>Conectar Carteira</>
+              <Moon className="w-5 h-5 text-gray-600" />
             )}
           </button>
-        )}
+        </div>
       </div>
     </header>
   );
-}
+};
+
+export default Header;
